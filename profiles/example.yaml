@@ -1,0 +1,70 @@
+# Beispielprofil mit erfundenen Werten. Diese Datei IST eingecheckt.
+#
+# Echte Profile als profiles/<name>.yaml anlegen — die sind per .gitignore
+# ausgeschlossen, weil sie CV-Texte und Angaben zu realen Personen enthalten.
+#
+#   cp profiles/example.yaml profiles/meinname.yaml
+#   jobpipe score --profile meinname
+
+name: example
+display_name: Beispiel-Profil
+
+# Der eigene Lebenslauf als Fliesstext oder Markdown. Basis für den
+# semantischen Score.
+cv_text: |
+  Ausbildung in einem kaufmännischen oder technischen Beruf.
+  Erfahrung mit den üblichen Office-Werkzeugen.
+  Interesse an strukturierter Arbeit mit Daten.
+
+# WICHTIG: Zielrollen beschreiben den Wunschzustand, nicht den Ist-Zustand.
+# Wer sich wegbewerben will, findet über den eigenen CV sonst genau das,
+# was er schon macht. Der Score nimmt das Maximum über alle Zielrollen.
+target_roles:
+  - name: Beispielrolle A
+    description: >
+      Beschreibung der gewünschten Tätigkeit in zwei bis vier Sätzen.
+      So konkret wie möglich formulieren — dieser Text wird eingebettet
+      und gegen die Inseratstexte verglichen.
+  - name: Beispielrolle B
+    description: >
+      Eine zweite Stossrichtung, falls du dich in mehrere Richtungen
+      bewerben willst.
+
+locations:
+  - label: Beispielstadt
+    postal_code: "8000"
+    radius_km: 25
+
+workload_min: 80
+workload_max: 100
+
+# Positiv-Signale: erhöhen den Score, wenn sie im Inserat vorkommen.
+keywords_positive:
+  - Beispielbegriff
+  - Weiterer Begriff
+
+# Ausschluss-Signale: drücken den Score aktiv.
+# Das ist kein harter Filter — ein Inserat mit einem Treffer hier kann
+# trotzdem oben landen, wenn alles andere passt.
+keywords_exclude:
+  - Unerwünschter Begriff
+
+wants_home_office: false
+wants_flextime: false
+
+# Gemessen stammen rund 50 % der Inserate von Personalvermittlern.
+# false blendet sie ganz aus, true behält sie mit Malus (siehe weights).
+include_agencies: true
+
+# Gewichte für den Gesamtscore. Anfangs geraten — ab M6 werden sie anhand
+# deiner Daumen-hoch/runter-Bewertungen kalibriert.
+weights:
+  semantic: 1.0
+  workload: 0.5
+  location: 0.8
+  home_office: 0.3
+  flextime: 0.3
+  keywords: 0.5
+  recency: 0.2
+  agency_penalty: 0.35
+  exclude_penalty: 1.0

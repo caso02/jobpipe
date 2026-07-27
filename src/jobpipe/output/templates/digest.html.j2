@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ digest.profile_title }} — {{ digest.created_at | datum }}</title>
+<style>
+  /* Bewusst eine einzelne, eingebettete Datei: der Digest soll sich per
+     Doppelklick öffnen lassen und auch in einem Mailclient funktionieren. */
+  :root {
+    --bg: #fbfbfa; --fg: #1a1a18; --muted: #6b6b66; --line: #e4e4e0;
+    --card: #ffffff; --accent: #2f5d50; --new: #b4531f; --warn: #9a3412;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16161a; --fg: #ececea; --muted: #9a9a94; --line: #2c2c32;
+      --card: #1e1e23; --accent: #7fb3a0; --new: #e08a55; --warn: #e0a05f;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 2rem 1rem 4rem; background: var(--bg); color: var(--fg);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+  main { max-width: 46rem; margin: 0 auto; }
+  header { border-bottom: 2px solid var(--line); padding-bottom: 1rem; margin-bottom: 2rem; }
+  h1 { margin: 0 0 .3rem; font-size: 1.5rem; letter-spacing: -.01em; }
+  .meta { color: var(--muted); font-size: .9rem; }
+  .roles { margin-top: .8rem; display: flex; flex-wrap: wrap; gap: .4rem; }
+  .chip {
+    background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+    padding: .15rem .7rem; font-size: .8rem; color: var(--muted);
+  }
+  article {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.3rem; margin-bottom: 1rem;
+  }
+  .row { display: flex; gap: .6rem; align-items: baseline; }
+  .rank { color: var(--muted); font-variant-numeric: tabular-nums; font-size: .9rem; min-width: 1.6rem; }
+  h2 { margin: 0; font-size: 1.08rem; line-height: 1.35; flex: 1; }
+  h2 a { color: inherit; text-decoration: none; }
+  h2 a:hover { color: var(--accent); text-decoration: underline; }
+  .score {
+    font-variant-numeric: tabular-nums; font-weight: 600; color: var(--accent);
+    font-size: .95rem; white-space: nowrap;
+  }
+  .sub { color: var(--muted); font-size: .9rem; margin: .35rem 0 0 2.2rem; }
+  .tag {
+    display: inline-block; font-size: .72rem; padding: .1rem .45rem; border-radius: 4px;
+    border: 1px solid currentColor; margin-left: .35rem; vertical-align: 1px;
+  }
+  .tag-new { color: var(--new); }
+  .tag-warn { color: var(--warn); }
+  .tag-agency { color: var(--muted); }
+  .snippet { margin: .75rem 0 0 2.2rem; font-size: .93rem; }
+  .group {
+    margin: .7rem 0 0 2.2rem; padding: .5rem .75rem; font-size: .85rem;
+    border-left: 3px solid var(--line); color: var(--muted);
+  }
+  table { margin: .8rem 0 0 2.2rem; border-collapse: collapse; font-size: .84rem; width: calc(100% - 2.2rem); }
+  td { padding: .22rem .5rem .22rem 0; vertical-align: top; border-bottom: 1px solid var(--line); }
+  td.k { color: var(--muted); white-space: nowrap; width: 9rem; }
+  .links { margin: .9rem 0 0 2.2rem; font-size: .9rem; }
+  .links a { color: var(--accent); }
+  .expiring li { margin-bottom: .35rem; }
+  footer { margin-top: 2.5rem; color: var(--muted); font-size: .8rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+  @media (max-width: 34rem) {
+    .sub, .snippet, .group, table, .links { margin-left: 0; width: 100%; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>{{ digest.profile_title }}</h1>
+    <div class="meta">
+      {{ digest.created_at | datum }} · {{ digest.entries | length }} Treffer aus
+      {{ digest.total_candidates }} bewerteten Stellen
+      {%- if digest.new_count %} · <strong>{{ digest.new_count }} neu</strong>{% endif %}
+    </div>
+    {% if digest.by_role %}
+    <div class="roles">
+      {% for role, n in digest.by_role.items() %}<span class="chip">{{ n }}× {{ role }}</span>{% endfor %}
+    </div>
+    {% endif %}
+  </header>
+
+  {% for e in digest.entries %}
+  <article>
+    <div class="row">
+      <span class="rank">{{ e.rank }}.</span>
+      <h2><a href="{{ e.url }}">{{ e.title }}</a>
+        {%- if e.is_new %}<span class="tag tag-new">neu</span>{% endif %}
+        {%- if e.expires_in_days is not none and e.expires_in_days <= 7 %}
+        <span class="tag tag-warn">noch {{ e.expires_in_days }} Tage</span>{% endif %}
+      </h2>
+      <span class="score">{{ "%.3f" | format(e.score) }}</span>
+    </div>
+    <div class="sub">
+      {{ e.company }}{% if e.is_agency %}<span class="tag tag-agency">Vermittler</span>{% endif %}
+      · {{ e.city or "Ort unbekannt" }}{% if e.distance_km is not none %} ({{ e.distance_km | round | int }} km){% endif %}
+      · {{ e.workload }}
+    </div>
+
+    {% if e.group_size > 1 %}
+    <div class="group">
+      Dieselbe Stelle an {{ e.group_size }} Orten: {{ e.group_locations | join(", ") }}{% if e.group_size > e.group_locations | length %} …{% endif %}
+    </div>
+    {% endif %}
+
+    {% if e.snippet %}<p class="snippet">{{ e.snippet }}</p>{% endif %}
+    {% if e.truncated %}
+    <div class="group">Beschreibung auf dem Portal gekürzt — der vollständige Text steht beim Arbeitgeber.</div>
+    {% endif %}
+
+    {% if e.reasons %}
+    <table>
+      {% for key, reason in e.reasons.items() %}
+      <tr><td class="k">{{ key | kriterium }}</td><td>{{ reason | kurz(110) }}</td></tr>
+      {% endfor %}
+    </table>
+    {% endif %}
+
+    <div class="links">
+      <a href="{{ e.url }}">Inserat ansehen</a>
+      {%- if e.apply_url and e.apply_url != e.url %} · <a href="{{ e.apply_url }}">Direkt bewerben</a>{% endif %}
+      {%- if e.role %} <span class="meta">· passt zu: {{ e.role }}</span>{% endif %}
+    </div>
+  </article>
+  {% endfor %}
+
+  {% if digest.expiring %}
+  <h2>Läuft bald ab</h2>
+  <p class="meta">Nicht in der Liste oben, schliesst aber innerhalb einer Woche.</p>
+  <ul class="expiring">
+    {% for e in digest.expiring %}
+    <li><a href="{{ e.url }}">{{ e.title }}</a> — {{ e.company }}, {{ e.city or "?" }}
+        · noch {{ e.expires_in_days }} Tage</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  <footer>
+    {% if digest.companies_capped %}
+    {{ digest.companies_capped }} weitere Treffer ausgeblendet, weil pro Arbeitgeber
+    höchstens {{ cap }} Stellen gezeigt werden.<br>
+    {% endif %}
+    Modell: {{ digest.model }} · erzeugt von jobpipe
+  </footer>
+</main>
+</body>
+</html>

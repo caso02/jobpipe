@@ -1,0 +1,64 @@
+{#- Markdown-Digest. Bewusst schmal gehalten: liest sich im Terminal, in
+    einem Editor und später in einer Mail gleich gut. -#}
+# {{ digest.profile_title }}
+
+**{{ digest.created_at | datum }}** · {{ digest.entries | length }} Treffer aus {{ digest.total_candidates }} bewerteten Stellen{% if digest.new_count %} · **{{ digest.new_count }} neu**{% endif %}
+
+{% if digest.by_role %}
+{% for role, n in digest.by_role.items() %}`{{ n }}× {{ role }}`{{ " · " if not loop.last }}{% endfor %}
+
+{% endif %}
+---
+
+{% for e in digest.entries %}
+## {{ e.rank }}. {{ e.title }}{% if e.is_new %} 🆕{% endif %}
+
+**{{ e.company }}**{% if e.is_agency %} · _Personalvermittler_{% endif %} · {{ e.city or "Ort unbekannt" }}{% if e.distance_km is not none %} ({{ e.distance_km | round | int }} km){% endif %} · {{ e.workload }} · Score **{{ "%.3f" | format(e.score) }}**{% if e.expires_in_days is not none and e.expires_in_days <= 7 %} · ⏳ **läuft in {{ e.expires_in_days }} Tagen ab**{% endif %}
+
+{% if e.group_size > 1 -%}
+> Dieselbe Stelle ist an {{ e.group_size }} Orten ausgeschrieben:
+> {{ e.group_locations | join(", ") }}{% if e.group_size > e.group_locations | length %} …{% endif %}
+
+{% endif -%}
+{% if e.snippet -%}
+{{ e.snippet }}
+{% if e.truncated %}
+_Beschreibung auf dem Portal gekürzt — der vollständige Text steht beim Arbeitgeber._
+{% endif %}
+{%- endif %}
+
+{% if e.reasons -%}
+| Kriterium | Befund |
+|---|---|
+{% for key, reason in e.reasons.items() -%}
+| {{ key | kriterium }} | {{ reason | kurz(88) }} |
+{% endfor %}
+{%- endif %}
+
+{% if e.role %}
+_Passt am ehesten zu: {{ e.role }}_
+
+{% endif %}
+[Inserat ansehen]({{ e.url }}){% if e.apply_url and e.apply_url != e.url %} · [Direkt bewerben]({{ e.apply_url }}){% endif %}
+
+---
+
+{% endfor %}
+
+{%- if digest.expiring %}
+
+## ⏳ Läuft bald ab
+
+Diese Treffer stehen nicht in der Liste oben, schliessen aber innerhalb einer
+Woche.
+
+{% for e in digest.expiring -%}
+- **{{ e.title }}** — {{ e.company }}, {{ e.city or "?" }} · noch {{ e.expires_in_days }} Tage · [ansehen]({{ e.url }})
+{% endfor %}
+{%- endif %}
+
+{% if digest.companies_capped %}
+_{{ digest.companies_capped }} weitere Treffer ausgeblendet, weil pro Arbeitgeber
+höchstens {{ cap }} Stellen gezeigt werden._
+{% endif %}
+_Modell: {{ digest.model }} · erzeugt von jobpipe_

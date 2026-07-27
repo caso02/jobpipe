@@ -1,0 +1,203 @@
+[
+  {
+    "jobAdvertisement": {
+      "id": "00177bdc-42c7-4705-9ea1-177f5cf7c5a8",
+      "createdTime": "2026-07-23T02:35:12.889",
+      "updatedTime": "2026-07-27T02:16:44.674",
+      "status": "PUBLISHED_PUBLIC",
+      "sourceSystem": "EXTERN",
+      "externalReference": null,
+      "stellennummerEgov": null,
+      "stellennummerAvam": null,
+      "fingerprint": "pe9de1fdb50bd73a6f5967617a33b6bc90bf91dedef5088bdbc4c6a176d44bf83",
+      "reportingObligation": false,
+      "reportingObligationEndDate": null,
+      "reportToAvam": false,
+      "jobCenterCode": null,
+      "approvalDate": null,
+      "rejectionDate": null,
+      "rejectionCode": null,
+      "rejectionReason": null,
+      "cancellationDate": null,
+      "cancellationCode": null,
+      "jobContent": {
+        "externalUrl": "https://www.alegro.ch/jobs/lhn2/",
+        "numberOfJobs": null,
+        "jobDescriptions": [
+          {
+            "languageIsoCode": "de",
+            "title": "Trockenbauer",
+            "description": "Ein führendes Gipser/Malerunternehmen der Region sucht für mehrere Baustellen&nbsp;sofort einen&nbsp;**Trockenbauer**\n\n**AUFGABEN**\n\n *  Umgang mit Nivelliergerät und Laser\n *  Lesen der vorgegebenen Detail- und Baupläne\n *  Einmessen und anzeichnen nach Plan\n *  Erstellen von Ständerwerk Alu, Holz\n *  Leichtbauwände z.B. Gipsplatten, Holz usw.\n *  Wärme-, Kälte-. Schall-, Brand- und Strahlenschutz Innen- Aussenbereich\n *  verkleiden von Wänden, Decken, Säulen, Gebäudetechnik usw.\n *  Kleben, Spachteln und Schleifen\n *  Grund- &amp; Weissputzarbeiten\n *  Abriebarbeiten\n *  Oberflächenbehandlung\n *  Neu &amp; Umbauten\n\n**ANFORDERUNGEN**\n\n *  Abgeschlossene Berufslehre als Gipser/ Trockenbauer\n *  Führerausweis für PW\n *  Gute Umgangsformen\n *  Deutsche Sprache in Wort und Schrift\n *  Teamplayer\n *  Alter 20-50 Jahre\n\n**ANGEBOT**\n\n *  Bei Eignung erwartet Sie eine langfristige&nbsp; und herausforderungsvolle Aufgabe.\n *  Arbeitsort: 8952 Schlieren\n\nHaben wir Ihr Interesse geweckt? Dann senden Sie bitte Ihre Bewerbungsunterlagen mit Foto oder rufen Sie uns an: [E-Mail entfernt]\n\nALEGRO AG&nbsp; -&nbsp; Mellingerstrasse 1&nbsp; -&nbsp; 5400 Baden &nbsp;[Telefon entfernt]"
+          }
+        ],
+        "company": {
+          "name": "Alegro AG Personal fur Bau Handwerk & Regie",
+          "street": null,
+          "houseNumber": null,
+          "postalCode": null,
+          "city": null,
+          "countryIsoCode": null,
+          "postOfficeBoxNumber": null,
+          "postOfficeBoxPostalCode": null,
+          "postOfficeBoxCity": null,
+          "website": null,
+          "surrogate": false
+        },
+        "employment": {
+          "startDate": null,
+          "endDate": null,
+          "shortEmployment": false,
+          "immediately": false,
+          "permanent": true,
+          "workloadPercentageMin": "100",
+          "workloadPercentageMax": "100",
+          "workForms": []
+        },
+        "location": {
+          "id": null,
+          "remarks": null,
+          "city": "Schlieren",
+          "postalCode": "8952",
+          "communalCode": "247",
+          "regionCode": "ZH01",
+          "cantonCode": "ZH",
+          "countryIsoCode": "CH",
+          "coordinates": {
+            "lon": "8.446",
+            "lat": "47.397"
+          }
+        },
+        "occupations": [
+          {
+            "avamOccupationCode": "102231",
+            "workExperience": null,
+            "educationCode": null,
+            "qualificationCode": null
+          },
+          {
+            "avamOccupationCode": "102231",
+            "workExperience": null,
+            "educationCode": null,
+            "qualificationCode": null
+          }
+        ],
+        "languageSkills": [
+          {
+            "languageIsoCode": "de",
+            "spokenLevel": null,
+            "writtenLevel": null
+          },
+          {
+            "languageIsoCode": "de",
+            "spokenLevel": null,
+            "writtenLevel": null
+          }
+        ]
+      },
+      "publication": {
+        "startDate": "2026-07-21",
+        "endDate": "2026-09-19",
+        "euresDisplay": false,
+        "euresAnonymous": false,
+        "publicDisplay": true,
+        "restrictedDisplay": true,
+        "companyAnonymous": false
+      }
+    }
+  },
+  {
+    "jobAdvertisement": {
+      "id": "0045a476-03f8-4f24-9d66-6e9b0ffc438b",
+      "createdTime": "2026-07-23T19:01:44.003",
+      "updatedTime": "2026-07-25T02:35:11.907",
+      "status": "PUBLISHED_PUBLIC",
+      "sourceSystem": "API",
+      "externalReference": "67fc656d-14df-46ca-88a7-366b60cba36f",
+      "stellennummerEgov": "242491947",
+      "stellennummerAvam": null,
+      "fingerprint": "S242491947",
+      "reportingObligation": false,
+      "reportingObligationEndDate": null,
+      "reportToAvam": false,
+      "jobCenterCode": null,
+      "approvalDate": null,
+      "rejectionDate": null,
+      "rejectionCode": null,
+      "rejectionReason": null,
+      "cancellationDate": null,
+      "cancellationCode": null,
+      "jobContent": {
+        "externalUrl": "https://www.jobs.ch/de/stellenangebote/detail/67fc656d-14df-46ca-88a7-366b60cba36f/?utm_source=job-room.ch&utm_medium=affiliate&utm_campaign=wb:jobs|tg:b2c|cn:ch|lg:de|ct:targeting,nonbrand,job|cd:feedonomics-jobroom|mg:job-application|pd:n|tt:organic",
+        "numberOfJobs": null,
+        "jobDescriptions": [
+          {
+            "languageIsoCode": "de",
+            "title": "Senior Manager Consolidation and FP&A",
+            "description": "Senior Manager Consolidation and FP\\&A (100%)  \nBringen Sie mindestens 7 Jahre Erfahrung im externen Audit mit und möchten den nächsten Schritt in Richtung interne Konzernfunktion machen? Diese Rolle bietet Ihnen die Möglichkeit, Ihr Know\\-how einzubringen und sich innerhalb des Unternehmens langfristig weiterzuentwickeln und zusätzliche Verantwortung zu übernehmen.  \nUnser Kunde, ein international erfolgreiches und renommiertes Consumer Goods Unternehmen mit Hauptsitz in Zürich, sucht eine engagierte und ambitionierte Persönlichkeit zur Verstärkung des Group Consolidation Teams.  \nIn dieser Rolle übernehmen Sie die vollständige Verantwortung für die Konsolidierungs\\- und Reportingprozesse der Gruppe und stellen deren Genauigkeit, Compliance sowie kontinuierliche Weiterentwicklung sicher.  \nDiese Position bietet Ihnen die Möglichkeit, in einem dynamischen, global ausgerichteten Umfeld nachhaltigen Einfluss zu nehmen und sich langfristig weiterzuentwickeln.  \nSenior Manager Consolidation and FP\\&A (100%)  \nIhre Aufgaben  \nVerantwortung für die Konzernkonsolidierung (finanzielle und nicht\\-finanzielle Daten) auf Gruppenebene  \nSicherstellung der korrekten Berechnung aller Konsolidierungssachverhalte (z. B. Minderheitenanteile, Intercompany\\-Transaktionen, Währungsumrechnung)  \nGewährleistung der Qualität und Integrität der Konzern\\-Cashflow\\-Rechnung sowie des Divisionsreportings  \nUmsetzung neuer IFRS\\-Anforderungen und Weiterentwicklung der Konzernberichterstattung in Zusammenarbeit mit dem IFRS\\-Team  \nVerantwortung für die Weiterentwicklung, Optimierung und den Betrieb des Konsolidierungssystems (Tagetik) inklusive User Support  \nErstellung und Pflege von Reporting\\-Templates zur Erfassung finanzieller und nicht\\-finanzieller Daten.  \nErstellung hochwertiger Management\\- und Verwaltungsratsberichte sowie Unterstützung des Sustainability Reportings  \nSicherstellung der Qualität von Budget\\- und Forecast\\-Daten sowie Erstellung aussagekräftiger FP\\&A\\-Analysen und Reportings  \nIhr Profil  \nAbgeschlossenes Studium in Finance, Accounting oder Business Administration (Bachelor oder Master) sowie Abschluss zum eidg. diplomierten Wirtschaftsprüfer oder Experte Rechnungslegung \\& Controlling  \nMindestens 7 Jahre Berufserfahrung im externen Audit – Erfahrung auf Unternehmensseite ist von Vorteil  \nExzellente Deutsch\\- und Englischkenntnisse in Wort und Schrift, weitere Sprachen von Vorteil  \nAusgeprägte Kommunikationsfähigkeiten mit der Fähigkeit, komplexe Inhalte klar, strukturiert und adressatengerecht zu vermitteln  \nDiplomatisches Auftreten kombiniert mit Durchsetzungsstärke  \nNachgewiesene Fähigkeit, effektive Beziehungen auf allen Unternehmensebenen aufzubauen und im internationalen Teamumfeld erfolgreich zu arbeiten  \nHumanis AG  \nPrime Tower · Hardstrasse 201 · 8005 Zürich  \nTelefon · jpid0cba36fjm jit0730jm jiy26jm"
+          }
+        ],
+        "company": {
+          "name": "Humanis AG",
+          "street": null,
+          "houseNumber": null,
+          "postalCode": "8002",
+          "city": "Zürich",
+          "countryIsoCode": "CH",
+          "postOfficeBoxNumber": null,
+          "postOfficeBoxPostalCode": null,
+          "postOfficeBoxCity": null,
+          "website": null,
+          "surrogate": true
+        },
+        "employment": {
+          "startDate": null,
+          "endDate": null,
+          "shortEmployment": false,
+          "immediately": false,
+          "permanent": true,
+          "workloadPercentageMin": "100",
+          "workloadPercentageMax": "100",
+          "workForms": []
+        },
+        "location": {
+          "id": null,
+          "remarks": null,
+          "city": "Zürich",
+          "postalCode": "8002",
+          "communalCode": "261",
+          "regionCode": "ZH12",
+          "cantonCode": "ZH",
+          "countryIsoCode": "CH",
+          "coordinates": {
+            "lon": "8.531",
+            "lat": "47.361"
+          }
+        },
+        "occupations": [
+          {
+            "avamOccupationCode": "101674",
+            "workExperience": null,
+            "educationCode": null,
+            "qualificationCode": null
+          }
+        ],
+        "languageSkills": [],
+        "applyChannelFlags": {
+          "apply_via_email": false,
+          "apply_via_phone": false,
+          "apply_via_post": false,
+          "form_url": "https://www.jobs.ch/de/stellenangebote/detail/67fc656d-14df-46ca-88a7-366b60cba36f/?utm_source=job-room.ch&utm_medium=affiliate&utm_campaign=wb:jobs|tg:b2c|cn:ch|lg:de|ct:targeting,nonbrand,job|cd:feedonomics-jobroom|mg:job-application|pd:n|tt:organic"
+        }
+      },
+      "publication": {
+        "startDate": "2026-07-23",
+        "endDate": "2026-08-22",
+        "euresDisplay": true,
+        "euresAnonymous": false,
+        "publicDisplay": true,
+        "restrictedDisplay": true,
+        "companyAnonymous": false
+      }
+    }
+  }
+]

@@ -1,0 +1,136 @@
+# Skill-Wörterbuch für die Gap-Analyse.
+#
+# Bewusst eingecheckt und von Hand gepflegt: die Extraktion soll erklärbar
+# sein. Wenn ein Skill erkannt wird, sieht man hier, woran das lag.
+#
+# Format:
+#   kategorie:
+#     - Einfacher Begriff
+#     - Begriff mit Aliassen: [Alias1, Alias2]
+#
+# Aliasse fangen Schreibweisen ab, die dasselbe meinen. Ohne sie zählt
+# "PostgreSQL" und "Postgres" als zwei verschiedene Anforderungen.
+
+programmiersprachen:
+  - Python
+  - SQL
+  - Java
+  - JavaScript: [JS, ECMAScript]
+  - TypeScript: [TS]
+  - PHP
+  - C#: [CSharp, "C Sharp"]
+  - Go: [Golang]
+  - R
+  - Rust
+  - Kotlin
+  - Swift
+  - Scala
+  - Bash: [Shell, Shellscript]
+  - HTML
+  - CSS
+  - ABAP
+
+daten:
+  - Data Warehouse: [DWH, Datawarehouse]
+  - ETL: [ELT]
+  - Power BI: [PowerBI]
+  - Tableau
+  - Qlik: [QlikView, Qlik Sense]
+  - dbt
+  - Airflow: [Apache Airflow]
+  - Spark: [Apache Spark, PySpark]
+  - Pandas
+  - NumPy
+  - Data Mining
+  - Datenmodellierung: [Data Modeling]
+  - Datenqualität: [Data Quality]
+  - Data Governance
+  - Machine Learning: [ML, Maschinelles Lernen]
+  - Deep Learning
+  - Statistik
+  - Datenanalyse: [Data Analytics, Datenauswertung]
+  - Reporting
+  - Kennzahlen: [KPI, KPIs]
+
+datenbanken:
+  - PostgreSQL: [Postgres]
+  - MySQL
+  - MariaDB
+  - Oracle
+  - SQL Server: [MSSQL, T-SQL]
+  - MongoDB
+  - Redis
+  - Snowflake
+  - Databricks
+  - Elasticsearch
+
+cloud_infra:
+  - Azure: [Microsoft Azure]
+  - AWS: [Amazon Web Services]
+  - Google Cloud: [GCP]
+  - Docker
+  - Kubernetes: [K8s]
+  - Terraform
+  - CI/CD: [Continuous Integration, Continuous Delivery]
+  - Git: [GitLab, GitHub]
+  - Linux
+  - Windows Server
+  - Netzwerk: [Networking, TCP/IP]
+  - Microsoft 365: [M365, Office 365, O365]
+  - Active Directory: [AD]
+  - ServiceNow
+
+methoden:
+  - Agile: [Scrum, Kanban]
+  - Requirements Engineering: [Anforderungsanalyse]
+  - Projektmanagement: [Project Management]
+  - Prozessanalyse: [Prozessoptimierung, BPMN]
+  - ITIL
+  - Testing: [Testautomatisierung, QA]
+  - Dokumentation
+
+kaufmaennisch:
+  - Auftragsabwicklung: [Auftragsbearbeitung, Order Management]
+  - Fakturierung: [Rechnungsstellung, Faktura]
+  - Debitoren
+  - Kreditoren
+  - Buchhaltung: [Rechnungswesen, Finanzbuchhaltung]
+  - Lohnbuchhaltung: [Payroll, Lohnwesen]
+  - Mehrwertsteuer: [MWST]
+  - Offerten: [Angebotserstellung]
+  - Stammdaten: [Stammdatenpflege, Datenpflege]
+  - Disposition
+  - Einkauf: [Beschaffung, Procurement]
+  - Vertragsverwaltung: [Vertragswesen]
+  - Policen: [Policenverwaltung]
+  - Schadenbearbeitung: [Schadenabwicklung]
+  - Mutationen
+  - Personaladministration: [HR-Administration, Personalwesen]
+  - Sozialversicherungen: [AHV, BVG, UVG]
+  - Treuhand
+  - Controlling
+  - Korrespondenz
+  - Terminplanung: [Terminkoordination]
+  - Reklamationen: [Reklamationsbearbeitung]
+
+systeme:
+  - SAP
+  - Abacus
+  - Sage
+  - Navision: [Microsoft Dynamics, Business Central]
+  - Salesforce
+  - ERP
+  - CRM
+  - Excel: [MS Excel]
+  - Word
+  - PowerPoint
+  - Outlook
+  - Avaloq
+  - Refline
+
+sprachen:
+  - Deutsch
+  - Englisch: [English]
+  - Französisch: [Francais]
+  - Italienisch
+  - Schweizerdeutsch: [Mundart]

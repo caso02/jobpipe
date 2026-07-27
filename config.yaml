@@ -1,0 +1,61 @@
+# Globale Pipeline-Konfiguration.
+# Personenbezogene Suchprofile liegen getrennt in profiles/<name>.yaml.
+
+storage:
+  db_path: data/jobs.db
+  raw_dir: data/raw
+
+# Höflichkeit ist hier Konfiguration, nicht Vorsatz. Diese Werte sind
+# bewusst konservativ; höher drehen nur mit gutem Grund.
+politeness:
+  requests_per_second: 1.0
+  timeout_seconds: 30
+  retry_attempts: 3
+  retry_backoff_seconds: 2.0
+  # {contact} wird aus JOBPIPE_CONTACT_URL ersetzt.
+  user_agent: "jobpipe/0.1 (persoenliches Bewerbungsprojekt; +{contact})"
+  # robots.txt bei jedem Lauf neu prüfen. Wenn eine Quelle uns aussperrt,
+  # hält der Fetcher von selbst an.
+  respect_robots: true
+  robots_cache_minutes: 60
+
+# Zielregion. Wird serverseitig gefiltert, wo die Quelle das unterstützt.
+region:
+  cantons: [ZH, SG, TG]
+
+sources:
+  job_room:
+    enabled: true
+    base_url: https://www.job-room.ch
+    search_path: /jobadservice/api/jobAdvertisements/_search
+    detail_path: /jobadservice/api/jobAdvertisements/{id}
+    page_size: 500          # verifiziert bis 500 OK
+    max_result_window: 10000  # harte Serverkonstante: (page+1)*size <= 10000
+    default_since_days: 1     # Tagesinkrement ~663 Inserate fuer ZH/SG/TG
+
+  # Ein Adapter, mehrere Hosts: identische Technik (Sitemap +
+  # window.__PRELOADED_STATE__), identische robots.txt, selbe Betreiberin
+  # (CH Media Classifieds AG).
+  ch_media:
+    enabled: false            # ab M2
+    hosts:
+      myjob:
+        base_url: https://www.myjob.ch
+        sitemaps: [/sitemap-vacancies.xml, /sitemap-vacancies-2.xml]
+      ostjob:
+        base_url: https://www.ostjob.ch
+        sitemaps: [/sitemap-vacancies.xml]
+      zentraljob:
+        enabled: false        # optional, nur bei groesserem Radius
+        base_url: https://www.zentraljob.ch
+        sitemaps: [/sitemap-vacancies.xml]
+
+  # jobs.ch, jobup.ch, jobscout24.ch, jobagent.ch werden bewusst NICHT
+  # unterstuetzt. Begruendung in PLAN.md, Abschnitt 1 und 2.
+
+# Gegenmassnahme gegen die Personalvermittler-Flut: gemessen stammen ~50%
+# der job-room-Inserate von Vermittlern, ein einzelner Anbieter stellt ~40%.
+quality:
+  agency_penalty: 0.35        # Malus auf den Score bei company.surrogate
+  max_per_company_in_digest: 3
+  near_duplicate_threshold: 0.85  # MinHash-Jaccard innerhalb derselben Firma

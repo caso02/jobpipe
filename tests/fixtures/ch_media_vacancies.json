@@ -1,0 +1,159 @@
+[
+  {
+    "id": 1087192,
+    "title": "ICT System Engineer – IAM (WAF/IDP) 80%–100 %",
+    "company_id": 1563,
+    "workplace_zip": "8058",
+    "workplace_city": "Zürich-Flughafen",
+    "activity": "<ul><li>Design, Implementierung und Konfiguration von Web Application Firewall (WAF) und Identity Provider (IDP) Lösungen</li><li>Erstellung und Feinabstimmung von Web Application Firewalls und der WAF Rule Engine</li><li>Integration von Single Sign-On (SSO), Multi-Faktor-Authentisierung (MFA) und föderierten Identitäten (SAML, OIDC) in die WAM-Infrastruktur</li><li>Analyse von Security-Logs, Identifikation von Angriffsmustern (False-Positive-Reduktion) und Unterstützung bei der Behebung von Sicherheitsvorfällen</li><li>Sicherstellung der Einhaltung der Service-Management- und Change-Management-Vorgaben</li><li>Verantwortung für Upgrades, Patching und Performance-Optimierung der Systeme in einer Hochverfügbarkeitsumgebung</li><li>Beratung von Applikationsverantwortlichen und Entwicklern bei der sicheren Anbindung ihrer Dienste sowie enge Zusammenarbeit mit dem SOC (Security Operations Center), sowie externen Partnern</li></ul>",
+    "requirements": "<div><ul><li>Erfolgreich abgeschlossene Ausbildung in Informatik (HF, FH, Master) oder eine vergleichbare Qualifikation sowie mehrjährige Berufserfahrung</li><li>Tiefgehende Erfahrung mit marktführenden WAF-Lösungen </li> <li>Fundierte Kenntnisse in Access Management Systemen</li> <li>Expertenkenntnisse in HTTP/S, SSL/TLS (Zertifikatsmanagement), TCP/IP sowie in modernen Authentifizierungsprotokollen (OAuth2, OpenID Connect, SAML 2.0)</li><li>Erfahrung in der Durchführung von Schwachstellenanalysen und ein tiefes Verständnis für Web-Technologien (APIs, JSON, REST)</li><li>Selbständige, lösungsorientierte und strukturierte Arbeitsweise</li><li>Teamfähigkeit, Kundenorientierung, sowie Engagement und Bereitschaft zur kontinuierlichen Weiterbildung</li><li>Fähigkeit, in kritischen Situationen ruhig und zielorientiert zu handeln und auch ausserhalb regulärer Arbeitszeiten verfügbar zu sein (z.B. bei Einsätzen oder Störungen)</li></ul></div>",
+    "offer": "<strong>Deine Benefits </strong><br />Um unsere Kunden bei der Umsetzung zukunftsorientierter IT-Strategien zu unterstützen, sind wir auf die klügsten Köpfe angewiesen. Darum bieten wir unseren Mitarbeitenden u.a.<br /><br /><ul><li>vielfältige Möglichkeiten zur persönlichen und beruflichen Entwicklung</li><li>fortschrittliche Arbeitsbedingungen</li><li>sehr gute ÖV-Anbindung</li><li>sehr moderner Arbeitsplatz</li><li>Homeoffice</li><li>Ferienkauf (2 Wochen pro Jahr)</li><li>flexible Arbeitszeiten</li><li>Unterstützung bei beruflicher Weiterbildung</li><li>Kostenloses SBB-Halbtax-Abo für alle Mitarbeitende</li><li>Ein grossartiges Team, in dem Teamgeist grossgeschrieben wird.</li><li>Eine vielseitige Arbeitsumgebung mit einer Vielzahl modernster Technologien</li></ul><p>Wir pflegen eine offene Du-Kultur – fühl dich also frei, uns deine Bewerbung gerne direkt in der Du-Form zu schicken.</p>",
+    "url_application": "https://apply.refline.ch/215876/2412/index.html?lang=de&cid=11",
+    "url_description": "https://apply.refline.ch/215876/2412/pub/13/index.html",
+    "is_shown_on_company_minisite": true,
+    "company_description": "<p>Bei unseren Kunden im BORS-Umfeld (Polizeikorps und Blaulichtorganisationen) werden hochsichere und modernste Technologien eingesetzt und betrieben. Datensicherheit sowie hohe Verfügbarkeit der Anwendungen spielen eine zentrale Rolle - rund um die Uhr. Als Outsourcing-Partner sind wir verantwortlich für die Weiterentwicklung und den Betrieb kritischer IT-Infrastrukturen sowie deren Anwendungen und unterstützen unsere Kunden mit innovativen Lösungen. Unser erfahrenes Spezialisten-Team freut sich auf deine Unterstützung ! </p><p>Als <strong>ICT System Engineer</strong> betreust du die <strong>WAF/IDP-Infrastruktur</strong> im <strong>sicherheitskritischen Polizeiumfeld</strong>.  </p><p>Du sorgst für einen stabilen, sicheren und leistungsfähigen Betrieb, unterstützt Projekte und bringst dein Know-how in die Weiterentwicklung unserer WAF/IDP-Systeme ein. </p>",
+    "type_key": 5,
+    "type_value_min": 80,
+    "type_value_max": 100,
+    "date_actualization": "2026-07-23",
+    "date_start": "2026-07-23",
+    "date_first_published": "2026-07-23 15:01:01.925715+0200",
+    "is_special_offer": false,
+    "is_promoted": false,
+    "home_office": true,
+    "position": [],
+    "external_id": "7359.13",
+    "country_code": [
+      "ch"
+    ],
+    "company": {
+      "id": 1563,
+      "name": "Abraxas Informatik AG",
+      "description": "<p class=\"1pt\"><span style=\"font-size:16px;\"><b>Gestalte die digitale Schweiz von morgen. </b></span></p>\n\n<p class=\"1pt\"><span style=\"font-size:16px;\">Mit rund 1'000 Mitarbeitenden an acht Standorten arbeiten wir gemeinsam an innovativen Lösungen für die öffentliche Hand. So vernetzen wir Schweizer Verwaltungen, Behörden, Unternehmen und die Bevölkerung mit effizienten, sicheren und durchgängigen IT-Lösungen und Dienstleistungen.</span></p>\n\n<p class=\"1pt\"><span style=\"font-size:16px;\">Unsere ICT-Jobprofile reichen vom Software Engineering über Architektur, Betrieb und Support bis hin zu Führungspositionen.</span></p>\n\n<p class=\"1pt\"><span style=\"font-size:16px;\">Bewirb dich jetzt und freu dich auf flexibles Arbeiten mit Sinn: <a href=\"https://www.abraxas.ch/jobs\" rel=\"nofollow noopener\" target=\"_blank\">www.abraxas.ch/jobs</a></span><br />\n<br />\nKomm ins #TeamAbraxas. Wir freuen uns auf dich!</p>",
+      "homepage": "https://www.abraxas.ch/jobs",
+      "additionalAddress": "Human Resources",
+      "zipPlace": "9001 St. Gallen",
+      "vacancyListStyleClass": "Ostjob_Vacancy_ListStyle_Default",
+      "zip": "9001",
+      "city": "St. Gallen",
+      "hideFirstPublicationDate": false,
+      "street": "St. Leonhard-Strasse",
+      "houseNumber": "80",
+      "poBox": "Postfach",
+      "country": "Schweiz",
+      "additionalName": "",
+      "pdfPreviewEnable": true,
+      "contactAndApplicationUrlEnable": true,
+      "vacanciesInPopup": false,
+      "isShownIframeOnMobilePages": false,
+      "showTemplateOnMobile": false,
+      "logoId": "5abdc81b214a3b2cb939",
+      "vacanciesExtraLink": "https://www.abraxas.ch/de/karriere/offene-stellen",
+      "countryOfOriginCode": "ch",
+      "isFreeCompany": false
+    },
+    "categories": [
+      {
+        "id": 43,
+        "title": "Engineering, Technik, Architektur",
+        "description": "",
+        "order_position": 6,
+        "is_active": true,
+        "platform_id": [
+          1
+        ]
+      },
+      {
+        "id": 57,
+        "title": "Informatik, Telekommunikation",
+        "description": "",
+        "order_position": 12,
+        "is_active": true,
+        "platform_id": [
+          1
+        ]
+      }
+    ],
+    "has_contact_person": false,
+    "_source_url": "https://www.ostjob.ch/job/ict-system-engineer-iam-waf-idp-80100/1087192"
+  },
+  {
+    "id": 1087194,
+    "title": "Betriebsmechaniker / Lebensstelle bis zur Pensionierung!",
+    "company_id": 53276,
+    "workplace_zip": "",
+    "workplace_city": "Region Weinfelden",
+    "activity": "Das Aufgabenspektrum kann wie folgt beschrieben werden:\n<ul>\n\t<li>Ausführung bzw. Planung sämtlicher Dienstleistungen zur Sicherstellung der Produktion</li>\n\t<li>Bewirtschaftung des Ersatzteillagers nach technischen und wirtschaftlichen Gesichtspunkten in Absprache mit Produktionsleitung</li>\n\t<li>Verantwortet die Produktionsbereitschaft der Werkzeuge und Vorrichtungen</li>\n\t<li>Unterstützt „Technik“ mit Werkzeugerfahrung</li>\n\t<li>Verantwortet und dokumentiert den Unterhalt sämtlicher Betriebsmittel gemäss Managementhandbuch</li>\n\t<li>Unterstützt den Sicherheitsverantwortlichen bei der Durchsetzung von Sicherheitsaspekten</li>\n\t<li>Verantwortet den Umgang und Unterhalt mit konzessionspflichtigen Einrichtungen und Anlagen (z.B. Druckbehälter)</li>\n\t<li>Verantwortet den Prüfmittelunterhalt gemäss Managementhandbuch</li>\n</ul>",
+    "requirements": "Wir wenden uns an einen <strong>gelernten Mechaniker </strong>mit mehrjähriger Erfahrung in der Instandhaltung. Von grossem Vorteil sind fundierte Kenntnisse im Bereich der Hydraulik, Pneumatik und allenfalls in der Elektrotechnik. Sie können mit Staplerfahrzeugen fahren und haben gute Anwenderkenntnisse im Umgang mit dem PC vorzuweisen. Vom Typ her, überzeugen Sie mit einer absolut verlässlichen und pflichtbewussten Arbeitseinstellung.",
+    "offer": "<strong>Interessiert mehr zu erfahren?</strong> Dann senden Sie uns doch umgehend Ihre Bewerbungsunterlagen mit Foto per <strong>e-Mail</strong> an <a href=\"mailto:[E-Mail entfernt]\">[E-Mail entfernt]</a> <strong>zHdv. Johann Povjeszlo, Geschäftsführer.</strong><br />\n<br />\n<strong>Wir freuen uns auf Ihre Kontaktaufnahme!</strong>",
+    "url_application": null,
+    "is_shown_on_company_minisite": true,
+    "company_description": "<strong>Attraktive Stelle mit normalen Arbeitszeiten!</strong><br />\n<br />\nIm Auftrag eines erfolgreichen Produktionsunternehmen, suchen wir <strong>per sofort </strong>oder nach Vereinbarung,<strong> einen erfahrenen und pflichtbewussten 35- bis 55-jährigen Mechaniker</strong> als",
+    "keywords": "Mechaniker, Polymechaniker",
+    "type_key": 5,
+    "type_value_min": 100,
+    "type_value_max": 100,
+    "date_actualization": "2026-07-27",
+    "date_start": "2026-07-27",
+    "date_first_published": "2026-07-27 00:40:01.765732+0200",
+    "is_special_offer": false,
+    "is_promoted": false,
+    "home_office": false,
+    "position": [],
+    "external_id": "6a6210aff1c912.34566624",
+    "country_code": [
+      "at",
+      "ch",
+      "de"
+    ],
+    "video_url": "",
+    "company": {
+      "id": 53276,
+      "name": "Atlantis Personal AG",
+      "description": "<strong>Atlantis Personal AG</strong> ist ein sehr aktiver und erfolgreicher <strong>Personalvermittler</strong> mit einem ausgezeichneten Kundenbeziehungsnetzwerk und einem ergänzendem Dienstleistungsangebot, bestehend aus <strong>Outplacement, Coaching und Temporärsuche</strong>. Mit Kompetenz, Persönlichkeit und langjähriger Erfahrung unterstützt die Atlantis Personal AG erfolgreich Unternehmen bei der Suche und Auswahl geeigneter Kandidaten. Für Kandidaten gilt die Atlantis Personal AG in der Branche, als der erfahrene Türöffner für den Einstieg in moderne und zukunftsorientierten TOP-Unternehmen.<strong> </strong><br />\n<br />\n<strong>Ihr Erfolg ist uns wichtig! W</strong>ir<strong> freuen uns auf eine partnerschaftlich aufgebaute, erfolgreiche Zusammenarbeit!</strong> <strong>Atlantis Personal AG</strong>",
+      "homepage": "http://www.atlantis-personal.ch",
+      "additionalAddress": "",
+      "vacancyListStyleClass": "Ostjob_Vacancy_ListStyle_GroupedByWorkplaceWithLogos",
+      "zip": "8500",
+      "city": "Frauenfeld",
+      "hideFirstPublicationDate": false,
+      "street": "Zürcherstrasse",
+      "houseNumber": "300",
+      "poBox": "",
+      "country": "Schweiz",
+      "additionalName": "",
+      "pdfPreviewEnable": true,
+      "contactAndApplicationUrlEnable": true,
+      "vacanciesInPopup": false,
+      "isShownIframeOnMobilePages": false,
+      "showTemplateOnMobile": false,
+      "logoId": "5ded911589a0a29b6ca5",
+      "countryOfOriginCode": "ch",
+      "isFreeCompany": false
+    },
+    "categories": [
+      {
+        "id": 45,
+        "title": "Mechanik, Elektronik, Optik, Textil (Fertigung)",
+        "description": "",
+        "order_position": 16,
+        "is_active": true,
+        "platform_id": [
+          1
+        ]
+      },
+      {
+        "id": 42,
+        "title": "Bau, Handwerk, Elektro",
+        "description": "",
+        "order_position": 0,
+        "is_active": true,
+        "platform_id": [
+          1
+        ]
+      }
+    ],
+    "has_contact_person": false,
+    "_source_url": "https://www.ostjob.ch/job/betriebsmechaniker-lebensstelle-bis-zur-pensionierung/1087194"
+  }
+]
