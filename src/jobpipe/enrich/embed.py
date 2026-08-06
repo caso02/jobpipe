@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import re
 import sqlite3
 import time
 from collections.abc import Callable, Sequence
@@ -344,14 +345,128 @@ def spread_scores(values: Sequence[float]) -> list[float]:
     return out
 
 
-def build_job_text(title: str, company: str, description: str) -> str:
+#: Überschriften, ab denen der inhaltlich aussagekräftige Teil beginnt.
+#:
+#: Aus den häufigsten Zwischentiteln von 4'000 Inseraten: "Ihre Aufgaben"
+#: (548), "Ihr Profil" (632), "Anforderungen" (416), "Deine Aufgaben" (417),
+#: "Das bringst du mit" (291).
+#: Zwischentitel tragen oft einen Zusatz: "**Ihre Aufgaben – Medizinische
+#: Leitung und strategische Entwicklung**". Die erste Fassung verlangte das
+#: Zeilenende direkt nach dem Stichwort und erkannte deshalb nur 28 % der
+#: Inserate. Deshalb ein Nachlauf ohne Satzzeichen — eine Überschrift endet
+#: nicht mit einem Punkt, ein Fliesstextsatz schon.
+SECTION_START_RE = re.compile(
+    r"^\s*[*#_\\\s]*(?:"
+    r"(?:ihre|deine|dein|ihr|unsere|die)?\s*"
+    r"(?:aufgaben|aufgabenbereich|tätigkeit\w*|hauptaufgaben|"
+    r"profil|anforderung\w*|qualifikation\w*|kompetenzen|voraussetzung\w*)"
+    r"|das\s+bringst?\s+du\s+mit"
+    r"|das\s+bringen\s+sie\s+mit"
+    r"|was\s+(?:du|sie)\s+mitbring\w*"
+    r"|damit\s+überzeug\w*"
+    r"|(?:dein|ihr)\s+tätigkeitsgebiet"
+    r"|wen\s+wir\s+suchen"
+    r"|wir\s+suchen"
+    r")\b[^.!?]{0,70}$",
+    re.IGNORECASE,
+)
+
+#: Überschriften, ab denen nur noch Werbung, Benefits und Kontakt folgen.
+#:
+#: Das ist der Teil, der die Einbettung verwässert: "Wir bieten" (286),
+#: "Unser Angebot" (273), "Interessiert?" (811), "Kontakt" (639). Er beschreibt
+#: den Arbeitgeber, nicht die Stelle — und er sieht bei allen Inseraten
+#: derselben Firma gleich aus.
+SECTION_END_RE = re.compile(
+    r"^\s*[*#_\\\s]*(?:"
+    r"wir\s+bieten|unser\s+angebot|deine\s+vorteile|ihre\s+vorteile|"
+    r"was\s+wir\s+(?:dir|ihnen|bieten)|darauf\s+kannst\s+du\s+zählen|"
+    r"worauf\s+du\s+zählen\s+kannst|benefits|"
+    r"interessiert|neugierig|haben\s+wir\s+dein\s+interesse|"
+    r"kontakt\w*|ihr\s+ansprechpartner|bewerbung\w*|"
+    r"weitere\s+bewerbungsmöglichkeiten|spontanbewerbung|offene\s+stellen|"
+    r"über\s+uns|wir\s+über\s+uns|das\s+unternehmen|"
+    r"arbeitsort|anstellungsart|einsatzbeginn|pensum"
+    r")\b.*$",
+    re.IGNORECASE,
+)
+
+#: Obergrenze für den extrahierten Teil. Deutlich unter :data:`MAX_CHARS`:
+#: was darüber hinausgeht, ist erfahrungsgemäss Fliesstext über die Firma.
+SECTION_MAX_CHARS = 2500
+
+
+def extract_relevant(description: str) -> str:
+    """Schneidet ein Inserat auf Aufgaben und Anforderungen zusammen.
+
+    Warum das nötig ist: die Einbettung mittelt über den ganzen Text. Je mehr
+    Firmenporträt, Benefits und Kontaktangaben darin stehen, desto weiter
+    wandert der Vektor vom eigentlichen Beruf weg. Gemessen an einem echten
+    Fall lag die Cosine-Ähnlichkeit einer Schreinerstelle (1'071 Zeichen, reine
+    Aufgabenliste) bei 0.668, die einer inhaltlich passenden
+    Sachbearbeitungsstelle bei der AXA (6'483 Zeichen mit Firmenporträt) bei
+    0.463. Gemessen wurde damit die Textsorte, nicht der Beruf.
+
+    Ohne erkennbare Gliederung bleibt der Text unverändert — lieber zu viel
+    behalten als den Aufgabenteil wegschneiden.
+    """
+    lines = description.split("\n")
+    start: int | None = None
+    end: int | None = None
+    for i, line in enumerate(lines):
+        if SECTION_START_RE.match(line):
+            if start is None:
+                start = i
+            # Ein späterer Anforderungsteil hebt ein zwischenzeitliches Ende
+            # wieder auf: manche Inserate schieben "Wir bieten" dazwischen.
+            end = None
+        elif end is None and start is not None and SECTION_END_RE.match(line):
+            end = i
+    if start is None:
+        return description
+    kept = "\n".join(lines[start : end if end is not None else len(lines)])
+    return kept.strip() or description
+
+
+def build_job_text(
+    title: str, company: str, description: str, description_chars: int = SECTION_MAX_CHARS
+) -> str:
     """Der Text, der eingebettet wird.
 
     Titel doppelt gewichtet, indem er vorangestellt und im Fliesstext
     wiederholt wird — er trägt das meiste Signal, geht in einer langen
     Beschreibung aber sonst unter.
+
+    Wie viel Beschreibung dazukommt, entscheidet das Profil. Gemessen an 42
+    Bewertungen von Profil B (6 interessant, 36 abgelehnt), AUC über alle
+    Paare, 0.5 wäre Zufall:
+
+    ====================================  =====
+    Beschreibungsanteil                     AUC
+    ====================================  =====
+    gar keine (nur Titel und Firma)       0.657
+    150 Zeichen                           0.620
+    300 Zeichen                           0.481
+    600 Zeichen                           0.426
+    2500 Zeichen (Aufgabenteil)           0.426
+    ganzes Inserat                        0.241
+    ====================================  =====
+
+    Der Zusammenhang ist monoton: **jedes Stück Beschreibung verschlechtert
+    das Ergebnis.** Der Grund ist, dass deutsche Inseratstexte berufsunabhängig
+    im selben Register geschrieben sind ("Du arbeitest selbstständig", "in
+    einem dynamischen Team") — die Einbettung misst damit die Textsorte statt
+    des Berufs. Der Beruf steckt im Titel.
+
+    Für ein Profil, dessen Signal tatsächlich im Text steht — bei Lucas etwa
+    der Tech-Stack, der nie im Titel auftaucht — kann das anders sein. Deshalb
+    ein Profilwert und keine feste Konstante: gemessen ist es nur für Profil B.
     """
-    parts = [title, f"{title} bei {company}.", description]
+    parts = [title, f"{title} bei {company}."]
+    if description_chars > 0:
+        body = truncate(extract_relevant(description or ""), description_chars)
+        if body:
+            parts.append(body)
     return "\n\n".join(p for p in parts if p).strip()
 
 

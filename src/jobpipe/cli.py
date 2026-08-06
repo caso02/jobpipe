@@ -787,11 +787,14 @@ def dashboard(
     Bewertungssitzung.
     """
     import subprocess
+    import threading
     from pathlib import Path as _Path
 
     app_file = _Path(__file__).parent / "output" / "dashboard.py"
-    console.print(f"\n[bold]Dashboard startet[/] → http://localhost:{port}\n")
+    url = f"http://127.0.0.1:{port}"
+    console.print(f"\n[bold]Dashboard startet[/] → {url}\n")
     console.print("[dim]Beenden mit Ctrl-C.[/]\n")
+    threading.Thread(target=_open_when_ready, args=(url,), daemon=True).start()
     subprocess.run(
         [
             sys.executable,
@@ -806,13 +809,40 @@ def dashboard(
             # und Profildaten. Im Log stand prompt eine öffentliche URL.
             "--server.address",
             "127.0.0.1",
+            # Headless, weil Streamlit sonst beim ersten Start interaktiv nach
+            # einer E-Mail-Adresse fragt ("Welcome to Streamlit!"). Ohne
+            # Terminal am anderen Ende blockiert der Prozess auf dieser Abfrage
+            # und beendet sich, ohne je einen Port zu öffnen. Den Browser
+            # öffnen wir stattdessen selbst.
             "--server.headless",
-            "false",
+            "true",
             "--browser.gatherUsageStats",
             "false",
         ],
         check=False,
     )
+
+
+def _open_when_ready(url: str, timeout_s: float = 30.0) -> None:
+    """Öffnet den Browser, sobald der Server antwortet.
+
+    Sofortiges Öffnen zeigt eine Fehlerseite: Streamlit braucht ein paar
+    Sekunden, bis es lauscht.
+    """
+    import socket
+    import time
+    import webbrowser
+    from urllib.parse import urlparse
+
+    parsed = urlparse(url)
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        with socket.socket() as s:
+            s.settimeout(0.5)
+            if s.connect_ex((parsed.hostname or "127.0.0.1", parsed.port or 80)) == 0:
+                webbrowser.open(url)
+                return
+        time.sleep(0.4)
 
 
 @app.command("scrub-raw")

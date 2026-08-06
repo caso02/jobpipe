@@ -83,6 +83,38 @@ _TITLE_TAIL_RE = re.compile(
 )
 
 
+#: Pensumangabe im Titel: "60%", "80-100%", "80 – 100 %".
+_TITLE_WORKLOAD_RE = re.compile(r"\b(\d{2,3})\s*(?:[-–—]\s*(\d{2,3})\s*)?%")
+
+
+def reconcile_workload(job: JobPosting) -> bool:
+    """Gleicht das Pensum im Titel mit dem strukturierten Feld ab.
+
+    Bei Widerspruch **gewinnt der Titel**. Gemessen betrifft das 78 von 7'473
+    Inseraten mit Prozentzahl im Titel (1 %), konzentriert bei Vermittlern:
+    "Exportsachbearbeiter **60 %** für die Region Pfäffikon" trägt im Feld
+    ``100-100``, und der Fliesstext bestätigt "eine feste Anstellung mit 60
+    Prozent". Wer Vollzeit sucht, bekäme die Stelle sonst als Volltreffer
+    angezeigt.
+
+    Gibt zurück, ob korrigiert wurde.
+    """
+    if job.workload_min is None or job.workload_max is None:
+        return False
+    match = _TITLE_WORKLOAD_RE.search(job.title)
+    if not match:
+        return False
+    lo = int(match.group(1))
+    hi = int(match.group(2)) if match.group(2) else lo
+    if lo > hi or not (0 < lo <= 100 and 0 < hi <= 100):
+        return False
+    if job.workload_min <= lo and hi <= job.workload_max:
+        return False  # Titel liegt im Feldbereich, kein Widerspruch
+    job.workload_min, job.workload_max = lo, hi
+    job.workload_from_title = True
+    return True
+
+
 def normalize_title(title: str, city: str | None = None) -> str:
     """Titel auf die vergleichbare Kernform bringen.
 
@@ -137,6 +169,11 @@ class JobPosting(BaseModel):
     agency_reason: str = ""
     description_md: str = ""
     description_truncated: bool = False
+    #: Am Text erkannte Sprache, ``None`` wenn unklar.
+    #:
+    #: Bewusst nicht aus ``languageIsoCode`` übernommen: job-room etikettiert
+    #: französische Inserate teils als ``de``.
+    description_language: str | None = None
 
     # -- Ort ---------------------------------------------------------------
     city: str | None = None
@@ -148,6 +185,9 @@ class JobPosting(BaseModel):
     # -- Konditionen -------------------------------------------------------
     workload_min: int | None = Field(default=None, ge=0, le=100)
     workload_max: int | None = Field(default=None, ge=0, le=100)
+    #: Pensum stammt aus dem Titel, weil es dem strukturierten Feld
+    #: widersprach. Siehe :func:`reconcile_workload`.
+    workload_from_title: bool = False
     is_permanent: bool | None = None
     start_date: date | None = None
     home_office: bool | None = None

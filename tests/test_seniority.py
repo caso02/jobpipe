@@ -105,9 +105,178 @@ class TestEducation:
         req = sen.detect("Sachbearbeiter", "Mindestens 5 Jahre Berufserfahrung erforderlich.")
         assert req.years == 5
 
+    @pytest.mark.parametrize(
+        ("text", "erwartet"),
+        [
+            ("Mindestens zwei Jahre Erfahrung in der HR Administration.", 2),
+            ("Wir erwarten fünf Jahre Berufserfahrung.", 5),
+            ("Ein Jahr Erfahrung genügt.", 1),
+            ("Mindestens zehn Jahre Berufserfahrung.", 10),
+        ],
+    )
+    def test_spelled_out_years(self, text: str, erwartet: int) -> None:
+        """Regression: die erste Fassung verlangte Ziffern.
+
+        Gemessen nennen 356 Inserate die Berufsjahre als Ziffer und 79 als
+        ausgeschriebenes Wort. Darunter war der höchstplatzierte Treffer des
+        Profils, für den ``detect()`` deshalb gar nichts fand.
+        """
+        assert sen.detect("Sachbearbeiter", text).years == erwartet
+
+
+class TestFurtherEducation:
+    """Weiterbildung ohne erkennbare Stufe.
+
+    ``EDUCATION_PATTERNS`` kennt nur HF, FH, Uni und Fachausweis. Eine
+    "Weiterbildung als HR Sachbearbeiter:in" ist keine davon und war deshalb
+    unsichtbar — obwohl genau sie die Hürde für eine Berufseinsteigerin ist.
+    """
+
+    def test_required_further_education_is_detected(self) -> None:
+        req = sen.detect(
+            "Sachbearbeiter:in Human Resources",
+            "Kaufmännische Ausbildung mit Weiterbildung als HR Sachbearbeiter:in",
+        )
+        assert req.further_education
+        assert not req.further_education_is_soft
+
+    def test_soft_further_education(self) -> None:
+        req = sen.detect("Sachbearbeiterin", "Weiterbildung als Berufsbildnerin von Vorteil")
+        assert req.further_education
+        assert req.further_education_is_soft
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "Bereitschaft für Weiterbildung zum Wasserwart",
+            "Karriere mit Perspektive – Weiterbildung zum Automobil-Mechatroniker",
+            "Weiterbildung als Berufsbildner/in oder Bereitschaft, diese zu absolvieren",
+            "Wir bieten Weiterbildung zur Fachfrau Finanzen",
+        ],
+    )
+    def test_offered_further_education_is_no_hurdle(self, text: str) -> None:
+        """Ein Angebot ist keine Bedingung.
+
+        Alle vier Wortlaute stammen aus echten Inseraten. Wer die Weiterbildung
+        erst mitbringen soll, ist ausgeschlossen; wer sie bekommt, nicht.
+        """
+        assert sen.detect("X", text).further_education is None
+
+    def test_known_level_takes_precedence(self) -> None:
+        """ "Weiterbildung zum Techniker HF" ist bereits über HF erfasst."""
+        req = sen.detect("X", "Weiterbildung zum Techniker HF erforderlich")
+        assert req.education == "hf"
+        assert req.further_education is None
+
+    def test_penalty_only_below_own_level(self) -> None:
+        req = sen.Requirements(further_education="Weiterbildung als HR Sachbearbeiterin")
+        assert sen.penalty(req, own_education="efz")[0] > 0
+        assert sen.penalty(req, own_education="fh")[0] == 0.0
+
+    def test_soft_weighs_less(self) -> None:
+        hart = sen.Requirements(further_education="x")
+        weich = sen.Requirements(further_education="x", further_education_is_soft=True)
+        assert (
+            sen.penalty(weich, own_education="efz")[0] < sen.penalty(hart, own_education="efz")[0]
+        )
+
     def test_entry_friendly_detected(self) -> None:
         req = sen.detect("Sachbearbeiter", "Auch Berufseinsteigende sind willkommen.")
         assert req.is_entry_friendly
+
+
+class TestLanguages:
+    """Echte Fälle aus ihren Ablehnungen.
+
+    Der wiederkehrende Grund war "zwingend": das Inserat sagt ausdrücklich,
+    dass ohne diese Sprache nichts geht. Eine Sprache lässt sich anders als
+    fehlende Berufsjahre nicht im Anschreiben ausgleichen.
+    """
+
+    def test_mandatory_language_detected(self) -> None:
+        req = sen.detect(
+            "Sachbearbeiter Leistungen Ausland",
+            "Du verfügst zwingend über sehr gute Französisch- und Italienischkenntnisse.",
+        )
+        assert req.languages["fr"] == sen.LANG_HARD
+        assert req.languages["it"] == sen.LANG_HARD
+
+    def test_soft_language_is_free(self) -> None:
+        """ "Französisch von Vorteil" steht in sehr vielen Inseraten."""
+        req = sen.detect("Sachbearbeiterin", "Französischkenntnisse sind von Vorteil.")
+        assert req.languages["fr"] == sen.LANG_SOFT
+
+    def test_working_language_without_marker(self) -> None:
+        """Die grosse Lücke: 164 von 181 Fällen trugen gar kein Markerwort.
+
+        Wortlaut aus einem echten Inserat. Ohne Einschränkung genannt, also
+        Arbeitssprache — wer kein Französisch kann, erfüllt die Aufgabe nicht.
+        """
+        req = sen.detect(
+            "Sachbearbeiter Verkauf Innendienst",
+            "Selbstständige Kundenbetreuung in den Sprachen Deutsch, Französisch und Englisch",
+        )
+        assert req.languages["fr"] == sen.LANG_PROBABLE
+
+    def test_soft_marker_does_not_leak_across_segments(self) -> None:
+        """Regression: der Geltungsbereich endet am Zeilen- oder Satzende.
+
+        Ohne Begrenzung machte das "von Vorteil" der zweiten Zeile die erste
+        Zeile mit weich — und umgekehrt färbte ein "zwingend" auf eine
+        harmlose Nachbarzeile ab.
+        """
+        req = sen.detect(
+            "Sachbearbeiterin",
+            "Kundenkorrespondenz auf Französisch\nItalienischkenntnisse sind von Vorteil",
+        )
+        assert req.languages["fr"] == sen.LANG_PROBABLE
+        assert req.languages["it"] == sen.LANG_SOFT
+
+    def test_axa_wording_stays_soft(self) -> None:
+        """Echter Fall: die Stelle, die sie selbst als passend bewertet hat.
+
+        Würde die Regel hier anschlagen, verlöre sie ihren besten Treffer.
+        """
+        req = sen.detect(
+            "Sachbearbeiter:in Schaden Motorfahrzeuge",
+            "im Idealfall verfügst du über Französisch-, Englisch- und/oder Italienischkenntnisse",
+        )
+        assert req.languages["fr"] == sen.LANG_SOFT
+
+    def test_trailing_clause_does_not_soften(self) -> None:
+        """Der Fall, der die Sanitas-Stelle acht Ränge zu hoch stehen liess.
+
+        Das "von Vorteil" bezieht sich auf "weitere Sprachen", nicht auf
+        Italienisch. Ohne Komma-Grenze las die Regel die ganze Zeile als weich
+        und die Stelle blieb trotz zwingender Sprachanforderung auf Rang 7.
+        """
+        req = sen.detect(
+            "Sachbearbeiter Leistungen Ausland",
+            "Du verfügst zwingend über sehr gute Italienischkenntnisse, "
+            "weitere Sprachen sind von Vorteil",
+        )
+        assert req.languages["it"] == sen.LANG_HARD
+
+    def test_missing_mandatory_language_is_a_hard_stop(self) -> None:
+        req = sen.Requirements(languages={"fr": sen.LANG_HARD})
+        value, why = sen.penalty(req, own_languages=("de", "en"))
+        assert value == 1.0
+        assert "FR" in why
+
+    def test_working_language_costs_less_than_mandatory(self) -> None:
+        hart = sen.penalty(sen.Requirements(languages={"fr": sen.LANG_HARD}), own_languages=("de",))
+        wahrsch = sen.penalty(
+            sen.Requirements(languages={"fr": sen.LANG_PROBABLE}), own_languages=("de",)
+        )
+        assert 0.0 < wahrsch[0] < hart[0]
+
+    def test_language_one_has_is_free(self) -> None:
+        req = sen.Requirements(languages={"fr": sen.LANG_HARD, "en": sen.LANG_HARD})
+        assert sen.penalty(req, own_languages=("de", "en", "fr"))[0] == 0.0
+
+    def test_soft_language_never_penalises(self) -> None:
+        req = sen.Requirements(languages={"fr": sen.LANG_SOFT})
+        assert sen.penalty(req, own_languages=("de",))[0] == 0.0
 
 
 class TestPenalty:

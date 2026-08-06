@@ -16,6 +16,7 @@ from jobpipe.collect.ch_media import (
 )
 from jobpipe.parse import ch_media as ch_media_parser
 from jobpipe.parse import job_room as job_room_parser
+from jobpipe.parse import lang
 from jobpipe.parse.dedup import (
     MIN_TITLE_SIMILARITY,
     cluster_across_portals,
@@ -26,7 +27,12 @@ from jobpipe.parse.dedup import (
     title_similarity,
 )
 from jobpipe.parse.geo import Geocoder, haversine_km
-from jobpipe.parse.schema import JobPosting, normalize_company, normalize_title
+from jobpipe.parse.schema import (
+    JobPosting,
+    normalize_company,
+    normalize_title,
+    reconcile_workload,
+)
 from jobpipe.store import db
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -498,3 +504,111 @@ class TestGeo:
         job = make(postal_code="8500", city="Frauenfeld", lat=1.0, lon=2.0, canton="ZH")
         Geocoder(conn).enrich(job)
         assert (job.lat, job.lon, job.canton) == (1.0, 2.0, "ZH")
+
+
+class TestLanguageDetection:
+    """Sprache am Text erkennen, nicht am Etikett.
+
+    Der Auslöser: ein STIHL-Inserat für Wil SG trägt
+    ``jobDescriptions[].languageIsoCode = "de"`` und ist durchgehend
+    französisch geschrieben. Gemessen sind 2.5 % des Bestands französisch, im
+    kaufmännischen Pool von Profil B 7.1 %.
+    """
+
+    def test_german(self) -> None:
+        assert (
+            lang.detect_language(
+                "Wir suchen für unser Team eine Sachbearbeiterin, die uns bei der "
+                "Auftragsabwicklung und in der Administration unterstützt."
+            )
+            == "de"
+        )
+
+    def test_french_despite_german_label(self) -> None:
+        """Der echte Wortlaut aus dem Inserat, das die Regel ausgelöst hat."""
+        assert (
+            lang.detect_language(
+                "POURQUOI STIHL. En tant qu'entreprise familiale innovante et marque "
+                "mondiale leader dans le domaine des tronçonneuses, nous vous offrons "
+                "un poste avec des perspectives dans une équipe qui vous soutient."
+            )
+            == "fr"
+        )
+
+    def test_short_text_is_unknown(self) -> None:
+        """Zu wenig Material heisst «keine Aussage», nicht «keine Sprache»."""
+        assert lang.detect_language("Sachbearbeiter 80%") is None
+        assert lang.detect_language("") is None
+        assert lang.detect_language(None) is None
+
+    def test_german_with_english_terms_stays_german(self) -> None:
+        """Deutsche Inserate zitieren ständig englische Begriffe."""
+        assert (
+            lang.detect_language(
+                "Wir bieten dir Home Office und flexible Arbeitszeiten. Du arbeitest "
+                "mit dem Team an Projekten und bist für die Administration zuständig, "
+                "dabei unterstützt dich unser Customer Service Lead."
+            )
+            == "de"
+        )
+
+
+class TestLanguageFilter:
+    def test_empty_wanted_keeps_everything(self) -> None:
+        assert lang.matches_language("fr", [])
+
+    def test_unknown_language_is_kept(self) -> None:
+        """Im Zweifel behalten — ein Inserat wegen Unsicherheit zu verwerfen
+        wäre der teurere Fehler."""
+        assert lang.matches_language(None, ["de"])
+
+    def test_wrong_language_is_dropped(self) -> None:
+        assert not lang.matches_language("fr", ["de"])
+        assert lang.matches_language("de", ["de"])
+
+
+class TestWorkloadReconciliation:
+    """Pensum im Titel gegen das strukturierte Feld.
+
+    Auslöser: "Exportsachbearbeiter **60 %** für die Region Pfäffikon" trägt im
+    Feld ``100-100``, und der Fliesstext bestätigt "eine feste Anstellung mit
+    60 Prozent". Wer Vollzeit sucht, bekäme die Stelle sonst als Volltreffer.
+    Gemessen betrifft das 78 von 7'473 Inseraten mit Prozentzahl im Titel.
+    """
+
+    def _job(self, titel: str, lo: int, hi: int) -> JobPosting:
+        return JobPosting(
+            portal="job_room",
+            source_id="1",
+            source_url="https://example.ch/1",
+            title=titel,
+            company_name="Muster AG",
+            workload_min=lo,
+            workload_max=hi,
+        )
+
+    def test_title_wins_on_conflict(self) -> None:
+        job = self._job("Exportsachbearbeiter 60% für die Region Pfäffikon", 100, 100)
+        assert reconcile_workload(job)
+        assert (job.workload_min, job.workload_max) == (60, 60)
+        assert job.workload_from_title
+
+    def test_range_in_title_wins(self) -> None:
+        job = self._job("Sachbearbeiter/in Administration (50-100%) 100%", 100, 100)
+        assert reconcile_workload(job)
+        assert (job.workload_min, job.workload_max) == (50, 100)
+
+    @pytest.mark.parametrize(
+        ("titel", "lo", "hi"),
+        [
+            ("Sachbearbeiter:in HR 80 - 100%", 80, 100),
+            ("Fachperson Rente 80-100%", 80, 100),
+            ("Mitarbeiter 100%", 100, 100),
+            ("Sachbearbeiterin ohne Angabe", 80, 100),
+        ],
+    )
+    def test_no_conflict_leaves_it_alone(self, titel: str, lo: int, hi: int) -> None:
+        job = self._job(titel, lo, hi)
+        assert not reconcile_workload(job)
+        assert (job.workload_min, job.workload_max) == (lo, hi)
+        assert not job.workload_from_title

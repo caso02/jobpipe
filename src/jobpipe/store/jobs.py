@@ -27,6 +27,7 @@ def _row(job: JobPosting, now: str) -> dict[str, Any]:
         "agency_reason": job.agency_reason,
         "description_md": job.description_md,
         "description_truncated": int(job.description_truncated),
+        "description_language": job.description_language,
         "city": job.city,
         "postal_code": job.postal_code,
         "canton": job.canton,
@@ -59,6 +60,7 @@ _UPSERT = """
 INSERT INTO jobs (
     portal, source_id, source_url, cluster_id, title, company_name,
     company_is_agency, agency_reason, description_md, description_truncated,
+    description_language,
     city, postal_code, canton, lat, lon,
     workload_min, workload_max, is_permanent, start_date, home_office,
     salary_min, salary_max, posted_at, expires_at, status,
@@ -68,6 +70,7 @@ INSERT INTO jobs (
 ) VALUES (
     :portal, :source_id, :source_url, :cluster_id, :title, :company_name,
     :company_is_agency, :agency_reason, :description_md, :description_truncated,
+    :description_language,
     :city, :postal_code, :canton, :lat, :lon,
     :workload_min, :workload_max, :is_permanent, :start_date, :home_office,
     :salary_min, :salary_max, :posted_at, :expires_at, :status,
@@ -83,6 +86,7 @@ ON CONFLICT (portal, source_id) DO UPDATE SET
     agency_reason = excluded.agency_reason,
     description_md = excluded.description_md,
     description_truncated = excluded.description_truncated,
+    description_language = excluded.description_language,
     city = excluded.city,
     postal_code = excluded.postal_code,
     canton = excluded.canton,

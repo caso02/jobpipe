@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
@@ -30,6 +31,7 @@ from jobpipe.enrich.embed import (
     cosine_max,
     spread_scores,
 )
+from jobpipe.parse.lang import matches_language
 from jobpipe.parse.schema import JobPosting
 
 log = structlog.get_logger(__name__)
@@ -46,18 +48,49 @@ class ScoreReport:
     top: list[dict[str, Any]] = field(default_factory=list)
 
 
-def _load_candidates(conn: sqlite3.Connection) -> list[tuple[int, JobPosting]]:
+def matches_occupation(codes_json: str | None, prefixes: Sequence[str]) -> bool:
+    """Gehört die Stelle zu einer der gesuchten Berufsgruppen?
+
+    ``prefixes`` leer heisst: keine Eingrenzung, alles passt.
+
+    Inserate **ohne** Berufscode fallen bei aktiver Eingrenzung heraus. Das
+    betrifft praktisch nur ostjob (die 383 CH-Media-Inserate tragen keine
+    AVAM-Codes); job-room liefert sie zu 100 %. Bewusst kein Rückfall auf
+    Titelabgleich — das wäre genau die unzuverlässige Methode, die die
+    Berufscodes ersetzen sollen.
+    """
+    if not prefixes:
+        return True
+    try:
+        codes = json.loads(codes_json or "[]")
+    except (TypeError, ValueError):
+        return False
+    return any(str(c).startswith(p) for c in codes for p in prefixes)
+
+
+def _load_candidates(
+    conn: sqlite3.Connection,
+    occupation_prefixes: Sequence[str] = (),
+    description_languages: Sequence[str] = (),
+) -> list[tuple[int, JobPosting]]:
     """Aktive Stellen, die nach der Deduplizierung angezeigt werden sollen."""
     rows = conn.execute(
         """SELECT id, portal, source_id, source_url, title, company_name,
                   company_is_agency, description_md, description_truncated,
+                  description_language,
                   city, postal_code, canton, lat, lon,
                   workload_min, workload_max, home_office,
                   posted_at, expires_at, status, apply_url,
-                  group_size, categories
+                  group_size, categories, occupation_codes
              FROM jobs
             WHERE status = 'active' AND is_group_representative = 1"""
     ).fetchall()
+    rows = [
+        r
+        for r in rows
+        if matches_occupation(r["occupation_codes"], occupation_prefixes)
+        and matches_language(r["description_language"], list(description_languages))
+    ]
 
     out: list[tuple[int, JobPosting]] = []
     for r in rows:
@@ -70,6 +103,7 @@ def _load_candidates(conn: sqlite3.Connection) -> list[tuple[int, JobPosting]]:
             company_is_agency=bool(r["company_is_agency"]),
             description_md=r["description_md"] or "",
             description_truncated=bool(r["description_truncated"]),
+            description_language=r["description_language"],
             city=r["city"],
             postal_code=r["postal_code"],
             canton=r["canton"],
@@ -98,7 +132,9 @@ def run(
     top_n: int = 20,
 ) -> ScoreReport:
     report = ScoreReport(profile=profile.name)
-    candidates = _load_candidates(conn)
+    candidates = _load_candidates(
+        conn, profile.occupation_prefixes, profile.description_languages
+    )
     report.candidates = len(candidates)
     if not candidates:
         return report
@@ -107,9 +143,17 @@ def run(
     report.model = embedder.name
     cache = EmbeddingCache(conn, embedder)
 
-    # 1) Inserate einbetten. Profil-unabhängig, also über Profile hinweg gecacht.
+    # 1) Inserate einbetten. Der Cache-Schlüssel enthält den Text, deshalb
+    #    teilen sich Profile mit gleichem ``embed_description_chars`` die
+    #    Vektoren weiterhin — nur abweichende Profile rechnen neu.
     job_texts = [
-        build_job_text(job.title, job.company_name, job.description_md) for _, job in candidates
+        build_job_text(
+            job.title,
+            job.company_name,
+            job.description_md,
+            profile.embed_description_chars,
+        )
+        for _, job in candidates
     ]
     job_vecs = cache.embed(job_texts)
 
@@ -153,6 +197,7 @@ def run(
             w.exclude_penalty * s["exclude_penalty"]
             + w.agency_penalty * s["agency_penalty"]
             + w.seniority_penalty * s["seniority_penalty"]
+            + w.customer_facing_penalty * s["customer_facing_penalty"]
         )
         total_weight = (
             w.semantic

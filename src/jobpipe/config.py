@@ -178,6 +178,19 @@ class SeniorityPreference(BaseModel):
     accept_leadership: bool = True
     #: Senior- und Spezialistenrollen anzeigen?
     accept_senior: bool = True
+    #: Sprachen, die man beherrscht — als ISO-Kürzel (de, en, fr, it).
+    #:
+    #: Eine zwingend geforderte Sprache, die hier fehlt, ist ein echter
+    #: Ausschluss und keine Verhandlungssache: ein Inserat, das "sehr gute
+    #: Französisch- und Italienischkenntnisse" voraussetzt, ist für jemanden
+    #: mit Deutsch und Englisch nicht erreichbar, egal wie gut der Rest passt.
+    languages: list[str] = Field(default_factory=lambda: ["de"])
+
+
+#: Wie viel Inseratstext in die Einbettung geht, in Zeichen. 0 heisst: nur
+#: Titel und Firma. Siehe :func:`jobpipe.enrich.embed.build_job_text` für die
+#: Messung, die hinter diesem Wert steht.
+DEFAULT_EMBED_DESCRIPTION_CHARS = 2500
 
 
 class ScoreWeights(BaseModel):
@@ -191,6 +204,7 @@ class ScoreWeights(BaseModel):
     agency_penalty: float = 0.35
     exclude_penalty: float = 1.0
     seniority_penalty: float = 0.8
+    customer_facing_penalty: float = 1.0
 
 
 class Profile(BaseModel):
@@ -212,6 +226,38 @@ class Profile(BaseModel):
 
     seniority: SeniorityPreference = Field(default_factory=SeniorityPreference)
     weights: ScoreWeights = Field(default_factory=ScoreWeights)
+
+    #: Wie viel Inseratstext in die Einbettung geht (Zeichen). 0 = nur Titel
+    #: und Firma. Für Profil B gemessen deutlich besser, siehe
+    #: :func:`jobpipe.enrich.embed.build_job_text`; für Profile, deren Signal
+    #: im Text steht statt im Titel, kann mehr richtig sein.
+    embed_description_chars: int = Field(default=DEFAULT_EMBED_DESCRIPTION_CHARS, ge=0)
+
+    #: AVAM-Berufscodes, auf die der Kandidatenpool eingegrenzt wird —
+    #: als Präfixe, weil die Codes hierarchisch sind.
+    #:
+    #: Leer heisst: keine Eingrenzung, alle Inserate kommen in den Pool. Das
+    #: ist der Standard und lässt bestehende Profile unverändert.
+    #:
+    #: Wozu das gut ist: der semantische Score wird im Pool rangnormalisiert.
+    #: Enthält der Pool den gesamten Bestand, beantwortet er die Frage "wie
+    #: viele Inserate sind schlechter als dieses?" statt "passt dieses?". Bei
+    #: einem Bestand, der zu 90 % aus Pflege, Bau und Gewerbe besteht, landet
+    #: ein Elektroniker damit im obersten Zehntel — zu Recht, aber nutzlos.
+    occupation_prefixes: list[str] = Field(default_factory=list)
+
+    #: Beratungs- und Aussendienstrollen abwerten?
+    #:
+    #: Gemeint sind Stellen mit eigenem Kundenportefeuille und Akquisition,
+    #: nicht jeder Kundenkontakt — telefonische und schriftliche Betreuung
+    #: gehört zu fast jeder Sachbearbeitung.
+    avoid_customer_facing: bool = False
+
+    #: Sprachen, in denen das Inserat geschrieben sein darf.
+    #:
+    #: Leer heisst: alle. Ein Inserat, dessen Sprache sich nicht sicher
+    #: bestimmen liess, bleibt immer drin — im Zweifel behalten.
+    description_languages: list[str] = Field(default_factory=list)
 
     @field_validator("workload_max")
     @classmethod

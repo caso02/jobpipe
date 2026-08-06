@@ -64,18 +64,40 @@ class RuleResult:
 # --------------------------------------------------------------------------
 
 
+#: Ab wie vielen Prozentpunkten Abstand ein Pensum ausserhalb des Wunsch-
+#: bereichs gar nichts mehr zählt.
+WORKLOAD_TOLERANCE_PP = 30.0
+
+
 def score_workload(job: Any, profile: Profile) -> tuple[float, str]:
-    """Überlappung des Pensums mit dem Wunschbereich."""
+    """Lässt sich die Stelle zu einem Pensum ausüben, das die Person will?
+
+    Es zählt, **ob** ein gangbares Pensum existiert — nicht, wie breit die
+    Überlappung ist. Die erste Fassung rechnete die Breite und war damit für
+    den Normalfall falsch: gemessen geben **79 % aller Inserate** ein festes
+    Pensum an ("80%") statt einer Spanne. Bei einem Wunsch von 80-100 % ergab
+    ``(0 + 1) / (20 + 1)`` für jedes davon 0.048 statt 1.0 — obwohl 80 % genau
+    passt. Vier von fünf Inseraten wurden so systematisch nach unten gedrückt,
+    und zwar unabhängig davon, ob das Pensum stimmte.
+    """
     lo = job.workload_min if job.workload_min is not None else 0
     hi = job.workload_max if job.workload_max is not None else 100
     if job.workload_min is None and job.workload_max is None:
         return 0.5, "Pensum nicht angegeben"
 
-    overlap = min(hi, profile.workload_max) - max(lo, profile.workload_min)
-    if overlap < 0:
-        return 0.0, f"Pensum {lo}-{hi}% ausserhalb {profile.workload_min}-{profile.workload_max}%"
-    wanted = max(1, profile.workload_max - profile.workload_min)
-    return min(1.0, (overlap + 1) / (wanted + 1)), f"Pensum {lo}-{hi}%"
+    label = f"Pensum {lo}%" if lo == hi else f"Pensum {lo}-{hi}%"
+
+    # Schnitt der beiden Intervalle. Punktangaben sind Intervalle der Breite 0,
+    # deshalb >= statt > : bei Pensum 80 % und Wunsch ab 80 % ist der Schnitt
+    # genau ein Punkt, und der genügt.
+    if min(hi, profile.workload_max) >= max(lo, profile.workload_min):
+        return 1.0, label
+
+    # Kein Schnitt: weich abwerten statt hart auf null. Ein 70-%-Pensum bei
+    # Wunsch ab 80 % ist verhandelbar, ein 30-%-Pensum nicht.
+    gap = max(profile.workload_min - hi, lo - profile.workload_max)
+    value = max(0.0, 1.0 - gap / WORKLOAD_TOLERANCE_PP) * 0.3
+    return value, f"{label} ausserhalb {profile.workload_min}-{profile.workload_max}%"
 
 
 def score_location(job: Any, profile: Profile) -> tuple[float, str, float | None]:
@@ -171,6 +193,56 @@ def score_exclusions(job: Any, profile: Profile) -> tuple[float, str]:
     return penalty, f"Ausschluss im {where}: " + ", ".join(hits[:4])
 
 
+#: Rollen mit eigenem Kundenkontakt und Akquisition.
+#:
+#: Nur der Titel zählt, wie bei der Führungserkennung: "Kundenkontakt" steht in
+#: fast jedem Inserat und sagt nichts über die Funktion. Der Titel schon.
+CUSTOMER_FACING_RE = re.compile(
+    r"berater(?:in)?\b|beratung\b|consultant|aussendienst|kundenberat\w*|"
+    r"akquisition|hauptagentur|generalagentur|personalvermittl\w*|"
+    r"account\s+manager|\bKAM\b|key\s+account|vertriebsmitarbeit\w*|"
+    # Verkaufsrollen. In der Abnahme standen "Technische:r Verkäufer:in" und
+    # "Verkaufsmitarbeiter*in im Hoch- und Tiefbau" noch in den Top 30 —
+    # dieselbe Sorte Stelle wie die Beraterinnen, nur anders benannt.
+    r"verkäufer(?:in)?\b|verkaufsmitarbeit\w*|verkaufsberat\w*",
+    re.IGNORECASE,
+)
+
+#: Hebt den Beratungstreffer auf: das Wort benennt die Abteilung, nicht die
+#: Rolle.
+#:
+#: "Sachbearbeiter:in Sozialberatung" ist eine Sachbearbeitungsstelle in einer
+#: Beratungsstelle — administrative Fallbearbeitung, kein eigenes
+#: Kundenportefeuille. Ohne diese Ausnahme fiele sie zu Unrecht heraus.
+BACK_OFFICE_RE = re.compile(
+    r"sachbearbeit\w*|back\s?-?office|innendienst|administration|"
+    r"assistent(?:in)?\b|assistenz",
+    re.IGNORECASE,
+)
+
+
+def score_customer_facing(job: Any, profile: Profile) -> tuple[float, str]:
+    """Rückgabe ist die STRAFE für eine Beratungs- oder Aussendienstrolle.
+
+    Für Profil B das eigentliche Kernkriterium: sie will weg vom Frontdesk,
+    aber telefonische und schriftliche Betreuung war nie das Problem. Die
+    Unterscheidung liegt darin, ob man ein **eigenes Kundenportefeuille**
+    betreut und akquiriert — das steht im Titel.
+
+    Bewusst eine eigene Regel und nicht ein weiterer Eintrag in
+    ``keywords_exclude``: so erscheint im Digest eine eigene Begründung, und
+    bei ihrem zentralen Kriterium ist das den Aufwand wert.
+    """
+    if not profile.avoid_customer_facing:
+        return 0.0, ""
+    match = CUSTOMER_FACING_RE.search(job.title)
+    if not match:
+        return 0.0, ""
+    if BACK_OFFICE_RE.search(job.title):
+        return 0.0, ""
+    return 1.0, f"Beratungsfunktion im Titel: «{match.group(0)}»"
+
+
 def score_seniority(job: Any, profile: Profile) -> tuple[float, str]:
     """Rückgabe ist die STRAFE für ein zu hohes Anforderungsniveau.
 
@@ -187,6 +259,7 @@ def score_seniority(job: Any, profile: Profile) -> tuple[float, str]:
         accept_leadership=s.accept_leadership,
         accept_senior=s.accept_senior,
         tolerance_years=s.tolerance_years,
+        own_languages=tuple(c.lower() for c in s.languages),
     )
 
 
@@ -245,6 +318,9 @@ def evaluate(job: Any, profile: Profile) -> RuleResult:
 
     v, why = score_seniority(job, profile)
     res.add("seniority_penalty", v, why)
+
+    v, why = score_customer_facing(job, profile)
+    res.add("customer_facing_penalty", v, why)
 
     return res
 

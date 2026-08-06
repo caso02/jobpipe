@@ -18,7 +18,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-SCHEMA_VERSION = 8
+SCHEMA_VERSION = 9
 
 
 # --------------------------------------------------------------------------
@@ -315,6 +315,18 @@ CREATE INDEX idx_job_clusters ON job_clusters (cluster_label);
 """
 
 
+_MIGRATION_9 = """
+-- Am Text erkannte Sprache des Inserats.
+--
+-- Nötig, weil das Etikett der Quelle lügt: ein STIHL-Inserat für Wil SG trägt
+-- languageIsoCode = 'de' und ist durchgehend französisch geschrieben.
+-- Gemessen sind 2.5% des Bestands französisch, im kaufmännischen Pool 7.1%.
+ALTER TABLE jobs ADD COLUMN description_language TEXT;
+
+CREATE INDEX idx_jobs_language ON jobs (description_language);
+"""
+
+
 def migrate(conn: sqlite3.Connection) -> int:
     """Hebt das Schema auf ``SCHEMA_VERSION``. Gibt die neue Version zurück."""
     current: int = conn.execute("PRAGMA user_version").fetchone()[0]
@@ -345,6 +357,9 @@ def migrate(conn: sqlite3.Connection) -> int:
     if current < 8:
         conn.executescript(_MIGRATION_8)
         current = 8
+    if current < 9:
+        conn.executescript(_MIGRATION_9)
+        current = 9
 
     conn.execute(f"PRAGMA user_version = {current}")
     return current

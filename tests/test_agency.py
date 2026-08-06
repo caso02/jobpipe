@@ -11,6 +11,7 @@ from typing import Any
 
 import pytest
 
+from jobpipe.parse import agency
 from jobpipe.parse.agency import (
     CompanyProfile,
     annotate,
@@ -30,6 +31,7 @@ def profile(
     cities: int,
     spread_km: float = 0.0,
     declared: bool = False,
+    client_mentions: int = 5,
 ) -> CompanyProfile:
     """Baut ein Firmenprofil mit den gewünschten Kennzahlen.
 
@@ -45,6 +47,7 @@ def profile(
         cities={f"Ort{i}" for i in range(cities)},
         points=points,
         declared_agency=declared,
+        client_mentions=client_mentions,
     )
 
 
@@ -200,3 +203,53 @@ class TestAnnotate:
         jobs = [self._job("Kistler AG", sid=str(i), lat=47.5, lon=8.9) for i in range(5)]
         annotate(jobs)
         assert not any(j.company_is_agency for j in jobs)
+
+
+class TestClientMention:
+    """Der Test, der Grossbetriebe von Vermittlern trennt.
+
+    Berufsvielfalt und Ortsstreuung allein reichen nicht: *Stadler Rail
+    Management AG* (0.42 Codes je Inserat, 6 Orte) und *Raiffeisen Schweiz*
+    (0.50, 10 Orte) liegen mitten im Wertebereich echter Vermittler
+    (0.03 bis 0.83). Beide wurden deshalb falsch etikettiert. Zuverlässig ist
+    erst, dass eine Vermittlung ihre Auftraggeberfirma im Text benennt.
+    """
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "Für unseren Kunden in Winterthur suchen wir eine Sachbearbeiterin.",
+            "Für einen langjährigen Kunden suchen wir per sofort",
+            "Im Auftrag unseres Auftraggebers besetzen wir diese Position",
+            "iPersonal vermittelt diese Stelle für ein Unternehmen in Pfäffikon",
+            "Unsere Kundin ist ein führendes Industrieunternehmen",
+        ],
+    )
+    def test_client_wording_recognised(self, text: str) -> None:
+        assert agency.CLIENT_MENTION_RE.search(text)
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "Wir sind für unsere Kundinnen und Kunden da.",
+            "Du betreust unsere Kunden am Telefon und per E-Mail.",
+            "Unsere Kunden schätzen die persönliche Beratung.",
+        ],
+    )
+    def test_service_language_is_not_a_client_mention(self, text: str) -> None:
+        """Regression: mit dem lockeren Muster lag Post CH AG bei 30 % statt 0 %.
+
+        "Für unsere Kunden" ist Dienstleistungssprache und steht bei der Post
+        so gut wie bei jeder Bank.
+        """
+        assert not agency.CLIENT_MENTION_RE.search(text)
+
+    def test_pattern_needs_client_mentions(self) -> None:
+        """Ohne Nennung einer Auftraggeberfirma zieht das Muster nicht."""
+        gross = profile("Stadler Rail Management AG", 26, 11, 6, 11.0, client_mentions=0)
+        assert not matches_pattern(gross)
+        assert classify(gross).is_agency is False
+
+    def test_pattern_still_catches_real_agencies(self) -> None:
+        vermittler = profile("Trabeco AG", 60, 38, 4, 8.8, client_mentions=12)
+        assert matches_pattern(vermittler)

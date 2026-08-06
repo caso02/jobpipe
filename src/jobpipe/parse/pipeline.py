@@ -22,7 +22,8 @@ from jobpipe.parse.agency import annotate as annotate_agencies
 from jobpipe.parse.agency import summary as agency_summary
 from jobpipe.parse.dedup import cluster_across_portals, collapse_company_duplicates, dedup_stats
 from jobpipe.parse.geo import Geocoder
-from jobpipe.parse.schema import JobPosting
+from jobpipe.parse.lang import detect_language
+from jobpipe.parse.schema import JobPosting, reconcile_workload
 from jobpipe.store import jobs as jobs_store
 
 log = structlog.get_logger(__name__)
@@ -79,6 +80,13 @@ def load_jobs(raw_dir: Path) -> tuple[list[JobPosting], int, int]:
                 by_key[(job.portal, job.source_id)] = job
             else:
                 skipped += 1
+
+    # Sprache am Text bestimmen, nicht am Etikett: job-room liefert für
+    # französische Inserate teils ``languageIsoCode = "de"``. Portalunabhängig,
+    # deshalb hier und nicht in den einzelnen Parsern.
+    for job in by_key.values():
+        job.description_language = detect_language(job.description_md)
+        reconcile_workload(job)
 
     return list(by_key.values()), files, skipped
 

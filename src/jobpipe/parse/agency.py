@@ -49,7 +49,7 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 
 from jobpipe.parse.geo import haversine_km
-from jobpipe.parse.schema import JobPosting
+from jobpipe.parse.schema import JobPosting, strip_html
 
 #: Öffentliche und institutionelle Arbeitgeber. Sie schreiben breit aus, aber
 #: sie vermitteln nicht. Diese Prüfung hat Vorrang vor allen anderen.
@@ -93,6 +93,30 @@ MIN_DISTINCT_CITIES = 8
 #: … oder eine hohe mittlere Entfernung vom Schwerpunkt.
 MIN_SPREAD_KM = 5.0
 
+#: Wie viele Inserate einer Firma eine Auftraggeberfirma erwähnen müssen.
+#:
+#: Absolut statt anteilig, weil der Anteil bei den grossen Vermittlern niedrig
+#: sein kann (iPersonal 9 % von 1'490 Inseraten) und bei den kleinen hoch.
+#: Drei Nennungen sind kein Zufall.
+MIN_CLIENT_MENTIONS = 3
+
+#: Wendungen, mit denen eine Vermittlung ihre Auftraggeberfirma benennt.
+#:
+#: Bewusst nur solche, die eine **Firma** meinen. Ein blosses "für unsere
+#: Kunden" ist Dienstleistungssprache und steht bei der Post so gut wie bei
+#: jeder Bank — damit lag der Anteil bei Post CH AG bei 30 % statt 0 %.
+CLIENT_MENTION_RE = re.compile(
+    r"für\s+(?:unseren|einen)\s+"
+    r"(?:langjährigen\s+|renommierten\s+|geschätzten\s+)?"
+    r"(?:Kunden|Auftraggeber|Mandanten)\b"
+    r"|im\s+Auftrag\s+(?:unseres|einer|eines)\b"
+    r"|unser(?:e)?\s+Kund(?:e|in)\s+ist\s+(?:ein|eine)\b"
+    r"|vermittelt\s+diese\s+Stelle"
+    r"|für\s+(?:unsere|eine)\s+Kundin\b"
+    r"|für\s+ein\s+(?:renommiertes\s+|erfolgreiches\s+)?Unternehmen\s+in\b",
+    re.IGNORECASE,
+)
+
 
 @dataclass
 class CompanyProfile:
@@ -104,6 +128,8 @@ class CompanyProfile:
     cities: set[str] = field(default_factory=set)
     points: list[tuple[float, float]] = field(default_factory=list)
     declared_agency: bool = False
+    #: Inserate, die eine Auftraggeberfirma erwähnen.
+    client_mentions: int = 0
 
     @property
     def code_ratio(self) -> float:
@@ -134,14 +160,41 @@ def name_suggests_agency(name: str) -> bool:
 
 
 def matches_pattern(profile: CompanyProfile) -> bool:
-    """Viele Berufsarten UND räumlich gestreut.
+    """Viele Berufsarten, räumlich gestreut — UND im Text als Vermittlung
+    erkennbar.
 
-    Beide Bedingungen zusammen. Berufsvielfalt allein trifft auch grosse
-    öffentliche Arbeitgeber; Ortsstreuung allein trifft Filialisten.
+    Die ersten beiden Bedingungen allein reichen nicht. Gemessen an echten
+    Firmen liegen *Stadler Rail Management AG* (0.42 Codes je Inserat, 6 Orte)
+    und *Raiffeisen Schweiz* (0.50, 10 Orte) mitten im Wertebereich echter
+    Vermittler (0.03 bis 0.83) — ein Grossbetrieb mit vielen Standorten und
+    breitem Stellenangebot sieht statistisch aus wie eine Vermittlung. Beide
+    wurden deshalb falsch etikettiert.
+
+    Der dritte Test ist der zuverlässige: **eine Vermittlung sagt es im
+    Text.** "Für unseren Kunden suchen wir", "im Auftrag unseres
+    Auftraggebers", "iPersonal vermittelt diese Stelle". Gemessen:
+
+    ============================  =======
+    Firma                         Anteil
+    ============================  =======
+    Work Selection                    62%
+    Workmanagement AG                 38%
+    Randstad                          32%
+    iPersonal AG                       9%
+    Stadler Rail Management AG         0%
+    Raiffeisen Schweiz                 0%
+    Post CH AG                         0%
+    ============================  =======
+
+    Bewusst nur die Wendungen, die eine **Auftraggeberfirma** meinen. Ein
+    blosses "für unsere Kunden" ist Dienstleistungssprache und steht bei der
+    Post so gut wie bei jeder Bank.
     """
     if profile.ads < MIN_ADS_FOR_PATTERN:
         return False
     if profile.code_ratio < MIN_CODE_RATIO:
+        return False
+    if profile.client_mentions < MIN_CLIENT_MENTIONS:
         return False
     return len(profile.cities) >= MIN_DISTINCT_CITIES or profile.spread_km >= MIN_SPREAD_KM
 
@@ -189,6 +242,8 @@ def build_profiles(jobs: Iterable[JobPosting]) -> dict[str, CompanyProfile]:
             p.points.append((job.lat, job.lon))
         if job.company_is_agency:
             p.declared_agency = True
+        if CLIENT_MENTION_RE.search(strip_html(job.description_md)):
+            p.client_mentions += 1
     return profiles
 
 
